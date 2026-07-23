@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soft Focus Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+
+        <header class="header">
+            <div class="brand">
+                <div class="logo-icon"><i class="fas fa-sparkles"></i></div>
+                <span>FocusFlow</span>
+            </div>
+            
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search tasks, categories, tags..." oninput="renderTasks()">
+            </div>
+
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                <button class="icon-btn" onclick="exportData()" title="Export Backup">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="icon-btn danger" onclick="clearCompleted()" title="Clear Completed">
+                    <i class="fas fa-broom"></i>
+                </button>
+                <div class="user-avatar">
+                    <i class="fas fa-smile"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-overview">
+            <div class="stat-card stat-total">
+                <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-total">0</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+            </div>
+            <div class="stat-card stat-pending">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-pending">0</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+            </div>
+            <div class="stat-card stat-completed">
+                <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-completed">0</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            <div class="stat-card stat-progress">
+                <div class="stat-icon"><i class="fas fa-chart-pie"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-percentage">0%</span>
+                    <span class="stat-label">Productivity Score</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <span>Overall Completion</span>
+                <span id="progress-text">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <main class="main-layout">
+            <aside class="sidebar">
+                <button class="add-btn" onclick="openModal()">
+                    <i class="fas fa-plus"></i> New Task
+                </button>
+
+                <div class="sidebar-section">
+                    <h3>Categories</h3>
+                    <div class="category-filters">
+                        <button class="cat-filter active" onclick="setCategoryFilter('all')">
+                            <i class="fas fa-globe"></i> All Tasks
+                        </button>
+                        <button class="cat-filter" onclick="setCategoryFilter('work')">
+                            <i class="fas fa-briefcase"></i> Work
+                        </button>
+                        <button class="cat-filter" onclick="setCategoryFilter('school')">
+                            <i class="fas fa-graduation-cap"></i> School
+                        </button>
+                        <button class="cat-filter" onclick="setCategoryFilter('personal')">
+                            <i class="fas fa-user"></i> Personal
+                        </button>
+                        <button class="cat-filter" onclick="setCategoryFilter('shopping')">
+                            <i class="fas fa-basket-shopping"></i> Shopping
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Sorting</h3>
+                    <select id="sort-select" onchange="renderTasks()" class="soft-select">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="priority">High Priority First</option>
+                        <option value="title">Alphabetical (A-Z)</option>
+                    </select>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Quick Notes</h3>
+                    <textarea id="quick-notepad" placeholder="Jot down quick thoughts here..." oninput="saveQuickNotes()"></textarea>
+                </div>
+            </aside>
+
+            <section class="content-area">
+                <div class="tabs-header">
+                    <div class="tabs">
+                        <button id="tab-active" class="tab-btn active" onclick="switchTab('active')">
+                            <i class="fas fa-list"></i> Active
+                        </button>
+                        <button id="tab-completed" class="tab-btn" onclick="switchTab('completed')">
+                            <i class="fas fa-check-double"></i> Completed
+                        </button>
+                        <button id="tab-starred" class="tab-btn" onclick="switchTab('starred')">
+                            <i class="fas fa-star"></i> Starred
+                        </button>
+                    </div>
+
+                    <select id="priority-filter" onchange="renderTasks()" class="soft-select">
+                        <option value="all">All Priorities</option>
+                        <option value="high">High Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="low">Low Priority</option>
+                    </select>
+                </div>
+
+                <div id="task-grid" class="task-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-pen-to-square"></i> Create Task</h2>
+                <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="form-group">
+                <label for="input-title">Task Title *</label>
+                <input type="text" id="input-title" placeholder="e.g. Complete Chemistry assignment">
+            </div>
+
+            <div class="form-group">
+                <label for="input-desc">Description</label>
+                <textarea id="input-desc" placeholder="Add helpful details or instructions..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="input-category">Category *</label>
+                    <select id="input-category">
+                        <option value="work">💼 Work</option>
+                        <option value="school" selected>🎓 School</option>
+                        <option value="personal">👤 Personal</option>
+                        <option value="shopping">🛒 Shopping</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-priority">Priority</label>
+                    <select id="input-priority">
+                        <option value="low">🟢 Low</option>
+                        <option value="medium" selected>🟡 Medium</option>
+                        <option value="high">🔴 High</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="input-time">Due Time / Schedule</label>
+                    <input type="text" id="input-time" placeholder="e.g. Tomorrow at 2:00 PM">
+                </div>
+
+                <div class="form-group">
+                    <label for="input-tags">Tags (comma separated)</label>
+                    <input type="text" id="input-tags" placeholder="e.g. project, urgent, math">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-submit" onclick="addTask()"><i class="fas fa-sparkles"></i> Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
